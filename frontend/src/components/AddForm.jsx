@@ -1,8 +1,14 @@
 import { useContext, useState, useEffect } from "react";
 import { expenseContext } from "../context/ExpenseProvider";
+import { useAuthContext } from "../custom-hooks/useAuthContext"
+
 
 const AddForm = () => {
+    const [error, setError] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
     const [data, setData] = useContext(expenseContext);
+
+    const {user} = useAuthContext()
 
     const [title, setTitle] = useState("");
     const [value, setValue] = useState("");
@@ -11,7 +17,11 @@ const AddForm = () => {
     const [comment, setComment] = useState("");
 
     const handleSubmit = (e) => {
+        setIsLoading(true)
         e.preventDefault();
+        if (!user){
+            return
+        }
 
         const add = {
             title: title,
@@ -26,12 +36,13 @@ const AddForm = () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${user.token}`
             },
             body: JSON.stringify(add),
         })
             .then((res) => {
                 if (!res.ok) {
-                    throw Error("Cannot connect to the database");
+                    throw Error("Error adding to the database");
                 }
                 return res.json();
             })
@@ -42,8 +53,10 @@ const AddForm = () => {
                 setType("expense");
                 setDate("");
                 setComment("");
+                setError(null)
+                setIsLoading(false)
             })
-            .catch((err) => console.log(err.message));
+            .catch((err) => setError(err.message));
 
             if(window.innerWidth <= 1300){
                 setFormBtnDisplay({display: 'block'})
@@ -134,7 +147,8 @@ const AddForm = () => {
                     ></textarea>
                 </div>
 
-                <button className='btn' type='submit'>Add</button>
+                <button disabled={isLoading} className='btn' type='submit'>Add</button>
+                {error && <div className="error">{error}</div>}
             </form>
         </>
         

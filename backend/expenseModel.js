@@ -15,10 +15,13 @@ const ExpenseSchema = new mongoose.Schema(
             required: true
         },
         date: {
-            String,
+            type: String,
             required: true
         },
         comment: {
+            type: String
+        },
+        user_id: {
             type: String,
             required: true
         }
